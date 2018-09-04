@@ -1,0 +1,16 @@
+---
+- !policy
+  id: webapp
+  owner: !group developers
+  body:
+  - !layer
+
+  - !host tomcat_host
+
+  - !grant
+    role: !layer
+    member: !host tomcat_host
+
+  - !host-factory
+    id: tomcat_factory
+    layers: [ !layer ] 

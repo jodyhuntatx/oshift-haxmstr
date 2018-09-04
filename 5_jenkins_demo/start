@@ -1,0 +1,11 @@
+if [[ "$DOCKER_HOST" != "" ]]; then
+  echo "Run this demo from a non-OpenShift-initialized shell."
+  exit -1
+fi
+docker-compose up -d
+# copy Conjur network config info to demo bootstrap file
+cat ../_conjur-bootstrap.env > demo/bootstrap.env
+echo "export CONJUR_HOST=\$CONJUR_MASTER_HOSTNAME:\$CONJUR_MASTER_PORT" >> demo/bootstrap.env
+sleep 2
+echo "cd to /demo and run scripts in order"
+docker exec -it jenkins-master bash

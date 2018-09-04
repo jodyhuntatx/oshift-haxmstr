@@ -1,0 +1,36 @@
+---
+- !policy
+  id: jenkins
+  annotations:
+    description: Conjur policy for Jenkins
+  body:
+    - !host master
+
+    - !layer jobs
+
+    - !host-factory
+      id: jobs_factory
+      layer: [ jobs ]
+
+
+- !policy
+  id: secrets
+  body:
+    - !variable test_db_username
+    - !variable test_db_password
+    - !variable prod_db_username
+    - !variable prod_db_password
+
+    # Permit Jenkins nodes and jobs to retrieve secrets
+    - !permit
+      privileges: [ read, execute ]
+      roles:
+        - !host /jenkins/master
+        - !layer /jenkins/jobs
+      resources:
+        - !variable test_db_username
+        - !variable test_db_password
+        - !variable prod_db_username
+        - !variable prod_db_password
+        - !variable /DemoVault/CICD/CICD_Secrets/Database-Oracle-OracleDBuser/username
+        - !variable /DemoVault/CICD/CICD_Secrets/Database-Oracle-OracleDBuser/password

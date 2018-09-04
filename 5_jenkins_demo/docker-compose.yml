@@ -1,0 +1,18 @@
+version: '3'
+services:
+
+  jenkins-master:
+    container_name: jenkins-master
+    image: jenkins-master:demo
+    build: ./build
+    entrypoint: sleep infinity
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    volumes:
+      - ./demo:/demo:z
+      - jenkins:/var/jenkins_home
+    restart: always
+
+volumes:
+  jenkins:

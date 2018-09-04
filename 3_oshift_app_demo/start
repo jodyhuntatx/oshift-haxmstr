@@ -1,0 +1,10 @@
+#!/bin/bash
+set -eo pipefail
+oc login -u developer
+./0_check_dependencies.sh
+./1_initialize_project.sh
+./2_load_conjur_policies.sh
+./3_init_conjur_cert_authority.sh
+./4_build_and_push_images.sh
+./5_deploy_test_app.sh
+./6_retrieve_secret.sh
