@@ -10,5 +10,5 @@ set -eou pipefail
 ./4_deploy_admin_cli.sh
 #./5_init_cluster.sh
 #./6_configure_standbys.sh
-./7_deploy_followers.sh
+#./7_deploy_followers.sh
 ./8_print_config.sh

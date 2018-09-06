@@ -3,11 +3,11 @@ set -euo pipefail
 
 . ../utils.sh
 
-announce "Retrieving secrets using Conjur access token."
-
 oc project $TEST_APP_PROJECT_NAME
 
 clear
+announce "Retrieving secrets using Conjur access token."
+
 app_pod=$(oc get pods --ignore-not-found --no-headers -l app=$TEST_APP_PROJECT_NAME | awk '{ print $1 }')
 if [[ "$app_pod" != "" ]]; then
   echo "App using secrets retrieved using REST API:"

@@ -3,9 +3,6 @@ set -eou pipefail
 
 . ../utils.sh
 
-oc login -u $OSHIFT_CLUSTER_ADMIN
-oc project default
-
 if [[ "$(docker ps | grep conjur-master)" != "" ]]; then
   docker stop conjur-master
   docker rm conjur-master
@@ -22,10 +19,17 @@ if [[ "$(docker ps | grep conjur-cli)" != "" ]]; then
   docker rm conjur-cli
 fi
 
-if [[ "$(docker network list | grep conjur-master-cluster)" != "" ]]; then
+if [[ "$(docker network list | grep conjur-master-network)" != "" ]]; then
   sleep 2
-  docker network rm conjur-master-cluster
+  docker network rm conjur-master-network
 fi
+
+scope stop
+
+exit
+
+oc login -u $OSHIFT_CLUSTER_ADMIN
+oc project default
 
 if has_project $CONJUR_PROJECT_NAME; then
   oc delete project $CONJUR_PROJECT_NAME
@@ -45,5 +49,4 @@ if has_project $CONJUR_PROJECT_NAME; then
   echo ""
 fi
 
-scope stop
 echo "Conjur environment purged."
