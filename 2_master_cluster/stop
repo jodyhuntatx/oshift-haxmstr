@@ -1,0 +1,54 @@
+#!/bin/bash
+set -eou pipefail
+
+. ../utils.sh
+
+if [[ "$(docker ps | grep conjur-master)" != "" ]]; then
+  docker stop conjur-master
+  docker rm conjur-master
+fi
+
+conjur_nodes=$(docker ps -f "label=role=conjur_node" --format "{{ .Names }}")
+for i in $conjur_nodes; do
+  docker stop $i
+  docker rm $i
+done
+
+if [[ "$(docker ps | grep conjur-cli)" != "" ]]; then
+  docker stop conjur-cli
+  docker rm conjur-cli
+fi
+
+if [[ "$(docker network list | grep conjur-master-network)" != "" ]]; then
+  sleep 2
+  docker network rm conjur-master-network
+fi
+
+scope stop
+
+if [[ ${OSHIFT_CLUSTER_ADMIN:-unset} == unset ]]; then
+  exit 0
+fi
+
+oc login -u $OSHIFT_CLUSTER_ADMIN
+oc project default
+
+if has_project $CONJUR_PROJECT_NAME; then
+  oc delete project $CONJUR_PROJECT_NAME
+
+  printf "Waiting for $CONJUR_PROJECT_NAME project deletion to complete"
+
+  while : ; do
+    printf "..."
+    
+    if has_project "$CONJUR_PROJECT_NAME"; then
+      sleep 5
+    else
+      break
+    fi
+  done
+
+  echo ""
+fi
+
+echo "Conjur environment purged."

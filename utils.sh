@@ -68,7 +68,7 @@ get_master_pod_name() {
   cont_list=$(docker ps -f "label=role=conjur_node" --format "{{.Names}}")
   for i in $cont_list; do
     if [[ $(docker exec $i evoke role) == master ]]; then
-      echo $i
+      echo -n $i
       exit 0
     fi
   done
@@ -77,7 +77,7 @@ get_master_pod_name() {
 get_cluster_leader_name() {
   cont_list=$(docker ps -f "label=role=conjur_node" --format "{{.Names}}")
   for i in $cont_list; do
-    echo $(docker exec -it $i etcdctl member list | grep isLeader=true | awk '{ print $2 }' | cut -d = -f 2)
+    echo -n $(docker exec -it $i etcdctl member list | grep isLeader=true | awk '{ print $2 }' | cut -d = -f 2)
     exit 0
   done
 }
