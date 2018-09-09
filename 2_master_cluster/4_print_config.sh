@@ -3,8 +3,6 @@ set -eou pipefail
 
 . ../utils.sh
 
-set_project $CONJUR_PROJECT_NAME
-
 announce "
 Conjur cluster is ready.
 

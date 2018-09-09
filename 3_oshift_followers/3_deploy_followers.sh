@@ -42,7 +42,9 @@ configure_followers() {
     copy_file_to_container "./tmp/follower-seed.tar" "/tmp/follower-seed.tar" "$pod_name"
 
 	# updating of hosts file can be removed if DNS resolves CONJUR_MASTER_HOST_NAME correctly
-#    oc exec -it $pod_name -- bash -c "echo \"$CONJUR_MASTER_HOST_IP    $CONJUR_MASTER_HOST_NAME\" >> /etc/hosts"
+    if [[ $NO_DNS == true ]]; then
+      oc exec -it $pod_name -- bash -c "echo \"$CONJUR_MASTER_HOST_IP    $CONJUR_MASTER_HOST_NAME\" >> /etc/hosts"
+    fi
     oc exec -it $pod_name -- evoke unpack seed /tmp/follower-seed.tar
     oc exec -it $pod_name -- evoke configure follower -p $CONJUR_MASTER_PORT
   done
@@ -61,7 +63,11 @@ get_seed_file_from_master() {
   local temp_dir=$1; shift
 
   echo "Retrieving follower seed file..."
-  scp -i ~/.aws/jody-k8s.pem $CONJUR_MASTER_HOST_ADMIN@$CONJUR_MASTER_HOST_IP:~/follower-seed.tar $temp_dir
+  if [[ $NO_DNS = true ]]; then
+    cp ~/follower-seed.tar $temp_dir
+  else
+    scp -i ~/.aws/jody-k8s.pem $CONJUR_MASTER_HOST_ADMIN@$CONJUR_MASTER_HOST_IP:~/follower-seed.tar $temp_dir
+  fi
 }
 
 ############################

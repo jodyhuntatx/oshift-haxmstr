@@ -1,4 +1,4 @@
-#!/bin/bash 
+#!/bin/bash -x
 set -eo pipefail
 
 . ../utils.sh
@@ -156,8 +156,9 @@ configure_cli() {
 
 # DNS HACK - not needed if $CONJUR_MASTER_HOST_NAME resolves w/ DNS
 # add entry to cli container's /etc/hosts so $CONJUR_MASTER_HOST_NAME resolves
-#  CONJUR_MASTER_HOST_IP=$(ifconfig en0 | grep "inet " | awk '{print $2}')
-#  docker exec -it $CLI_CONTAINER_NAME bash -c "echo \"$CONJUR_MASTER_HOST_IP    $CONJUR_MASTER_HOST_NAME\" >> /etc/hosts"
+if [[ $NO_DNS == true ]]; then
+  docker exec -it $CLI_CONTAINER_NAME bash -c "echo \"$CONJUR_MASTER_HOST_IP    $CONJUR_MASTER_HOST_NAME\" >> /etc/hosts"
+fi
 
   wait_till_master_is_responsive
 	# initialize cli for connection to master

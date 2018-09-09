@@ -7,7 +7,9 @@ check_env_var "DOCKER_REGISTRY_PATH"
 check_env_var "CONJUR_ACCOUNT"
 check_env_var "CONJUR_VERSION"
 check_env_var "CONJUR_MASTER_HOST_NAME"
-check_env_var "CONJUR_MASTER_HOST_ADMIN"
+if [[ $NO_DNS == false ]]; then
+  check_env_var "CONJUR_MASTER_HOST_ADMIN"
+fi
 check_env_var "CONJUR_MASTER_HOST_IP"
 check_env_var "CONJUR_ADMIN_PASSWORD"
 check_env_var "AUTHENTICATOR_SERVICE_ID"

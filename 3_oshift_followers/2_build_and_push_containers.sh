@@ -34,7 +34,7 @@ tag_cli() {
   announce "Pulling Conjur CLI image."
 
   if [[ $CONNECTED == true ]]; then
-    docker pull $CONJUR_CLI_IMAGE
+    docker pull $CLI_IMAGE_NAME
   fi
 }
 

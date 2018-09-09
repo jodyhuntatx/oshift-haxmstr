@@ -7,10 +7,12 @@ announce "Initializing Conjur certificate authority."
 
 set_project $CONJUR_PROJECT_NAME
 
-#conjur_master=$(get_master_pod_name)
-#docker exec -it $conjur_master conjur-plugin-service authn-k8s rake ca:initialize["conjur/authn-k8s/$AUTHENTICATOR_SERVICE_ID"]"  > /dev/null
-
-ssh -i ~/.aws/jody-k8s.pem $CONJUR_MASTER_HOST_ADMIN@$CONJUR_MASTER_HOST_NAME docker exec conjur1 conjur-plugin-service authn-k8s rake ca:initialize["conjur/authn-k8s/$AUTHENTICATOR_SERVICE_ID"] 
+if [[ $NO_DNS == true ]]; then
+  conjur_master=$(get_master_pod_name)
+  docker exec -it $conjur_master conjur-plugin-service authn-k8s rake ca:initialize["conjur/authn-k8s/$AUTHENTICATOR_SERVICE_ID"]
+else
+  ssh -i ~/.aws/jody-k8s.pem $CONJUR_MASTER_HOST_ADMIN@$CONJUR_MASTER_HOST_NAME docker exec conjur1 conjur-plugin-service authn-k8s rake ca:initialize["conjur/authn-k8s/$AUTHENTICATOR_SERVICE_ID"] 
+fi
 
 echo "Certificate authority initialized."
 
