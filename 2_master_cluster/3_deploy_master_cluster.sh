@@ -3,15 +3,12 @@ set -eo pipefail
 
 . ../utils.sh
 
-xmain() {
+main() {
   scope launch
   master_network_up
   master_up
   start_standbys
   haproxy_up
-}
-
-main() {
   cli_up
   cluster_up
   configure_standbys
@@ -188,13 +185,11 @@ cluster_up() {
 ############################
 wait_till_master_is_responsive() {
   set +e
-  set -x
   master_is_healthy=""
-  while [[ "$master_is_healthy" != "" ]]; do
+  while [[ "$master_is_healthy" == "" ]]; do
     sleep 2
     master_is_healthy=$(docker exec -it conjur-cli curl -k https://$CONJUR_MASTER_HOST/health | grep "ok" | tail -1 | grep "true")
   done
-  set +x
   set -e
 }
 

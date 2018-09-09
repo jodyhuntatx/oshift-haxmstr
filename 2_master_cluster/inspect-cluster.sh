@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash 
 
 oc project $CONJUR_PROJECT_NAME
 
@@ -11,7 +11,7 @@ docker ps -f "label=role=conjur_node"
 printf "\n\nStateful node info:\n----------------\n"
 cont_list=$(docker ps -f "label=role=conjur_node" --format "{{ .Names }}")
 for cname in $cont_list; do
-	crole=$(docker exec -it $cname evoke role)
+	crole=$(docker exec $cname evoke role)
 	cip=$(docker inspect $cname --format "{{ .NetworkSettings.IPAddress }}")
 	printf "%s, %s, %s\n" $cname $crole $cip
 done

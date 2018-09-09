@@ -1,6 +1,11 @@
 #!/bin/bash
 set -eou pipefail
 
+oshift="${OSHIFT_CONJUR_ADMIN:-unset}"
+if [[ $oshift == unset ]]; then
+  exit 0
+fi
+
 . ../utils.sh
 
 announce "Creating Conjur project."

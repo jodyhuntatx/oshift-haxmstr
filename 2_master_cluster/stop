@@ -3,18 +3,18 @@ set -eou pipefail
 
 . ../utils.sh
 
-if [[ "$(docker ps | grep conjur-master)" != "" ]]; then
+if [[ "$(docker ps -a | grep conjur-master)" != "" ]]; then
   docker stop conjur-master
   docker rm conjur-master
 fi
 
-conjur_nodes=$(docker ps -f "label=role=conjur_node" --format "{{ .Names }}")
+conjur_nodes=$(docker ps -a -f "label=role=conjur_node" --format "{{ .Names }}")
 for i in $conjur_nodes; do
   docker stop $i
   docker rm $i
 done
 
-if [[ "$(docker ps | grep conjur-cli)" != "" ]]; then
+if [[ "$(docker ps -a | grep conjur-cli)" != "" ]]; then
   docker stop conjur-cli
   docker rm conjur-cli
 fi
