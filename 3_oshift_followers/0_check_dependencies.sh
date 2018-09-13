@@ -17,6 +17,9 @@ check_env_var "DOCKER_REGISTRY_PATH"
 check_env_var "CONJUR_ACCOUNT"
 check_env_var "CONJUR_ADMIN_PASSWORD"
 check_env_var "AUTHENTICATOR_SERVICE_ID"
+if [[ "$NO_DNS" == "false" ]]; then
+  check_env_var "CONJUR_MASTER_SSH_KEY"
+fi
 
 # Confirms Conjur image is present.
 if [[ "$(docker images -q $CONJUR_APPLIANCE_IMAGE 2> /dev/null)" == "" ]]; then

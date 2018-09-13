@@ -41,11 +41,11 @@ master_up() {
 		--follower-altnames "$FOLLOWER_ALTNAMES" \
 		$CONJUR_ACCOUNT
 
-  echo "Caching Certificate from Conjur in ./etc..."
+  echo "Caching Certificate from Conjur in ../etc..."
 
-  rm -f ./etc/conjur-$CONJUR_ACCOUNT.pem
+  rm -f ../etc/conjur-$CONJUR_ACCOUNT.pem
 					# cache cert for copying to other containers
-  docker cp -L $CONJUR_MASTER_CONTAINER_NAME:/opt/conjur/etc/ssl/conjur.pem ./etc/conjur-$CONJUR_ACCOUNT.pem
+  docker cp -L $CONJUR_MASTER_CONTAINER_NAME:/opt/conjur/etc/ssl/conjur.pem ../etc/conjur-$CONJUR_ACCOUNT.pem
 
   echo "Caching Conjur Follower seed files in ~..."
   docker exec $CONJUR_MASTER_CONTAINER_NAME evoke seed follower conjur-follower > ~/follower-seed.tar
@@ -67,12 +67,14 @@ configure_standbys() {
   mkdir -p tmp
   master_container_name=$(get_master_pod_name)
   master_ip=$(docker inspect $master_container_name --format "{{ .NetworkSettings.IPAddress }}")
-  docker exec $master_container_name evoke seed standby conjur-node > ./tmp/standby-seed.tar
 
+  docker exec $master_container_name evoke seed standby $CONJUR_STANDBY1_NAME $master_container_name > ./tmp/$CONJUR_STANDBY1_NAME-seed.tar
   configure_standby $CONJUR_STANDBY1_NAME $master_ip
+
+  docker exec $master_container_name evoke seed standby $CONJUR_STANDBY2_NAME $master_container_name > ./tmp/$CONJUR_STANDBY2_NAME-seed.tar
   configure_standby $CONJUR_STANDBY2_NAME $master_ip
 
-  rm -rf tmp
+#  rm -rf tmp
 
   echo "Starting synchronous replication..."
 
@@ -104,9 +106,9 @@ configure_standby() {
 
   printf "Configuring standby %s...\n" $standby_name
 
-  docker cp ./tmp/standby-seed.tar $standby_name:/tmp/standby-seed.tar
+  docker cp ./tmp/${standby_name}-seed.tar $standby_name:/tmp/${standby_name}-seed.tar
     
-  docker exec $standby_name evoke unpack seed /tmp/standby-seed.tar
+  docker exec $standby_name evoke unpack seed /tmp/${standby_name}-seed.tar
   docker exec $standby_name evoke configure standby -i $master_ip
 
   # enroll standby node in etcd cluster
@@ -116,7 +118,7 @@ configure_standby() {
 ############################
 haproxy_up() {
   docker run -d \
-    --name conjur-master \
+    --name $CONJUR_MASTER_HOST_NAME \
     --label role=haproxy \
     -p "$CONJUR_MASTER_PORT:443" \
     -p "$CONJUR_MASTER_PGSYNC_PORT:5432" \

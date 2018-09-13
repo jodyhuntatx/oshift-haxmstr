@@ -6,7 +6,7 @@ networks:
 services:
   demo-pg:
     image: postgres:9.3
-    ports: [ "5432:5432" ]
+    ports: [ "35432:5432" ]
     networks:
       - demo
 

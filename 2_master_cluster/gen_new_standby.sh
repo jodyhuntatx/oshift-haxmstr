@@ -11,16 +11,29 @@ main() {
   fi
   FAILED_MASTER=$1
   NEW_STANDBY=$2
-#  delete_failed_master $FAILED_MASTER
+  delete_failed_master $FAILED_MASTER
+
+  master_container_name=$(get_cluster_leader_name)
+  echo
+  echo "After removing failed master $FAILED_MASTER..."
+  ./check_cluster.sh $master_container_name
+
   new_standby_up $NEW_STANDBY
+
+  echo
+  echo "After adding new standby $NEW_STANDBY..."
+  ./check_cluster.sh $master_container_name
 }
 
 ############################
 delete_failed_master() {
   announce "Deleting failed master $FAILED_MASTER..."
 
-  docker stop -f $FAILED_MASTER
+  set +e
+  docker stop $FAILED_MASTER
   docker rm $FAILED_MASTER
+  set -e
+
   master_container_name=$(get_cluster_leader_name)
   docker exec $master_container_name evoke cluster member remove $FAILED_MASTER
 }
@@ -36,7 +49,7 @@ new_standby_up() {
   mkdir -p tmp
   master_container_name=$(get_cluster_leader_name)
   master_ip=$(docker inspect $master_container_name --format "{{ .NetworkSettings.IPAddress }}")
-  docker exec $master_container_name evoke seed standby conjur-standby > ./tmp/standby-seed.tar
+  docker exec $master_container_name evoke seed standby $NEW_STANDBY $master_container_name > ./tmp/${NEW_STANDBY}-seed.tar
 
   start_standby $NEW_STANDBY
   configure_standby $NEW_STANDBY $master_ip
@@ -64,7 +77,7 @@ start_standby() {
     --security-opt seccomp:unconfined \
     $CONJUR_APPLIANCE_IMAGE
 
-  docker network connect conjur-master-cluster $standby_name
+  docker network connect conjur-master-network $standby_name
 }
 
 ############################
@@ -74,9 +87,9 @@ configure_standby() {
 
   printf "Configuring standby %s...\n" $standby_name
 
-  docker cp ./tmp/standby-seed.tar $standby_name:/tmp/standby-seed.tar
+  docker cp ./tmp/${standby_name}-seed.tar $standby_name:/tmp/${standby_name}-seed.tar
     
-  docker exec $standby_name evoke unpack seed /tmp/standby-seed.tar
+  docker exec $standby_name evoke unpack seed /tmp/${standby_name}-seed.tar
   docker exec $standby_name evoke configure standby -i $master_ip 
 #  -j /etc/conjur.json 
 
