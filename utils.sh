@@ -77,8 +77,11 @@ get_master_pod_name() {
 get_cluster_leader_name() {
   cont_list=$(docker ps -f "label=role=conjur_node" --format "{{.Names}}")
   for i in $cont_list; do
-    echo -n $(docker exec -it $i etcdctl member list | grep isLeader=true | awk '{ print $2 }' | cut -d = -f 2)
-    exit 0
+    leader_name=$(docker exec -it $i etcdctl member list | grep isLeader=true | awk '{ print $2 }' | cut -d = -f 2)
+    if [[ "$leader_name" != "" ]]; then
+      echo -n $leader_name
+      exit 0
+    fi
   done
 }
 

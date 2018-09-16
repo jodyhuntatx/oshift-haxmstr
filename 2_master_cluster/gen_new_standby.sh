@@ -11,15 +11,26 @@ main() {
   fi
   FAILED_MASTER=$1
   NEW_STANDBY=$2
-  delete_failed_master $FAILED_MASTER
 
+  # make sure the cluster is healthy 
+  wait_till_master_is_responsive 
+
+#  delete_failed_master $FAILED_MASTER
+
+  # remove old entry in cluster config and add new one
   master_container_name=$(get_cluster_leader_name)
+#  docker exec $master_container_name evoke cluster member remove $FAILED_MASTER
+#  docker exec $master_container_name evoke cluster member add $NEW_STANDBY
+
   echo
   echo "After removing failed master $FAILED_MASTER..."
   ./check_cluster.sh $master_container_name
 
-  new_standby_up $NEW_STANDBY
+  # conjur new standby
+#  new_standby_up $NEW_STANDBY
 
+  # Reenroll new standby in cluster
+  docker exec -it $NEW_STANDBY evoke cluster enroll --reenroll -n $NEW_STANDBY conjur-cluster
   echo
   echo "After adding new standby $NEW_STANDBY..."
   ./check_cluster.sh $master_container_name
@@ -27,33 +38,30 @@ main() {
 
 ############################
 delete_failed_master() {
-  announce "Deleting failed master $FAILED_MASTER..."
+  local failed_master_name=$1; shift
+
+  announce "Deleting failed master $failed_master_name..."
 
   set +e
-  docker stop $FAILED_MASTER
-  docker rm $FAILED_MASTER
+  docker stop $failed_master_name
+  docker rm $failed_master_name
   set -e
-
-  master_container_name=$(get_cluster_leader_name)
-  docker exec $master_container_name evoke cluster member remove $FAILED_MASTER
 }
 
 ############################
 new_standby_up() {
-  echo "Preparing standby seed files..."
+  local new_standby_name=$1; shift
 
-  # update cluster policy with new node name
-  docker cp ./cluster-policy.yml conjur-cli:/root/cluster-policy.yml
-  docker exec -it conjur-cli conjur policy load --as-group security_admin cluster-policy.yml
+  announce "Configuring new standby..."
 
   mkdir -p tmp
   master_container_name=$(get_cluster_leader_name)
   master_ip=$(docker inspect $master_container_name --format "{{ .NetworkSettings.IPAddress }}")
-  docker exec $master_container_name evoke seed standby $NEW_STANDBY $master_container_name > ./tmp/${NEW_STANDBY}-seed.tar
 
-  start_standby $NEW_STANDBY
-  configure_standby $NEW_STANDBY $master_ip
-  docker exec -it $NEW_STANDBY evoke cluster enroll -n $NEW_STANDBY conjur-cluster
+  docker exec $master_container_name evoke seed standby $new_standby_name $master_container_name > ./tmp/${new_standby_name}-seed.tar
+
+  start_standby $new_standby_name
+  configure_standby $new_standby_name $master_ip
 
   rm -rf tmp
 
@@ -61,7 +69,7 @@ new_standby_up() {
 
   docker exec $master_container_name evoke replication sync
 
-  echo "Standbys configured."
+  echo "New standby configured."
 }
 
 ############################
@@ -94,5 +102,16 @@ configure_standby() {
 #  -j /etc/conjur.json 
 
 }
+
+############################
+wait_till_master_is_responsive() {
+  set +e
+  master_is_healthy=""
+  while [[ "$master_is_healthy" == "" ]]; do
+    sleep 2
+    master_is_healthy=$(docker exec -it conjur-cli curl -k https://$CONJUR_MASTER_HOST/health | grep "ok" | tail -1 | grep "true")
+  done
+  set -e
+}  
 
 main $@

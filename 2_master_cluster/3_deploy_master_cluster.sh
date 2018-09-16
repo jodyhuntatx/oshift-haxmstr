@@ -34,12 +34,13 @@ master_up() {
 
   docker network connect conjur-master-network $CONJUR_MASTER_CONTAINER_NAME
 
-  docker exec -it $CONJUR_MASTER_CONTAINER_NAME evoke configure master \
-		-h $CONJUR_MASTER_HOST_NAME \
-		-p $CONJUR_ADMIN_PASSWORD \
-   		--master-altnames "$MASTER_ALTNAMES" \
-		--follower-altnames "$FOLLOWER_ALTNAMES" \
-		$CONJUR_ACCOUNT
+  docker exec -it $CONJUR_MASTER_CONTAINER_NAME \
+    evoke configure master \
+    -h $CONJUR_MASTER_HOST_NAME \
+    -p $CONJUR_ADMIN_PASSWORD \
+    --master-altnames "$MASTER_ALTNAMES" \
+    --follower-altnames "$FOLLOWER_ALTNAMES" \
+    $CONJUR_ACCOUNT
 
   echo "Caching Certificate from Conjur in ../etc..."
 
@@ -68,10 +69,10 @@ configure_standbys() {
   master_container_name=$(get_master_pod_name)
   master_ip=$(docker inspect $master_container_name --format "{{ .NetworkSettings.IPAddress }}")
 
-  docker exec $master_container_name evoke seed standby $CONJUR_STANDBY1_NAME $master_container_name > ./tmp/$CONJUR_STANDBY1_NAME-seed.tar
+  docker exec $master_container_name evoke seed standby $CONJUR_STANDBY1_NAME $master_container_name > ./tmp/${CONJUR_STANDBY1_NAME}-seed.tar
   configure_standby $CONJUR_STANDBY1_NAME $master_ip
 
-  docker exec $master_container_name evoke seed standby $CONJUR_STANDBY2_NAME $master_container_name > ./tmp/$CONJUR_STANDBY2_NAME-seed.tar
+  docker exec $master_container_name evoke seed standby $CONJUR_STANDBY2_NAME $master_container_name > ./tmp/${CONJUR_STANDBY2_NAME}-seed.tar
   configure_standby $CONJUR_STANDBY2_NAME $master_ip
 
 #  rm -rf tmp
@@ -118,7 +119,7 @@ configure_standby() {
 ############################
 haproxy_up() {
   docker run -d \
-    --name $CONJUR_MASTER_HOST_NAME \
+    --name conjur-master \
     --label role=haproxy \
     -p "$CONJUR_MASTER_PORT:443" \
     -p "$CONJUR_MASTER_PGSYNC_PORT:5432" \
@@ -155,17 +156,15 @@ start_cli() {
 
 ############################
 configure_cli() {
-
-# DNS HACK - not needed if $CONJUR_MASTER_HOST_NAME resolves w/ DNS
-# add entry to cli container's /etc/hosts so $CONJUR_MASTER_HOST_NAME resolves
-if [[ $NO_DNS == true ]]; then
-  docker exec -it $CLI_CONTAINER_NAME bash -c "echo \"$CONJUR_MASTER_HOST_IP    $CONJUR_MASTER_HOST_NAME\" >> /etc/hosts"
-fi
+  if [[ $NO_DNS ]]; then
+    # add entry to cli container's /etc/hosts so $CONJUR_MASTER_HOST_NAME resolves
+    docker exec -it $CLI_CONTAINER_NAME bash -c "echo \"$CONJUR_MASTER_HOST_IP    $CONJUR_MASTER_HOST_NAME\" >> /etc/hosts"
+  fi
 
   wait_till_master_is_responsive
 	# initialize cli for connection to master
   docker exec -it $CLI_CONTAINER_NAME bash -c "echo yes | conjur init -a $CONJUR_ACCOUNT -h $CONJUR_MASTER_HOST --force=true"
-        # configure policy plugin
+        # add policy plugin annotation in .conjurrc
   docker exec $CLI_CONTAINER_NAME sed -i.bak -e "s#\[\]#\[ policy \]#g" /root/.conjurrc
   docker exec $CLI_CONTAINER_NAME conjur authn login -u admin -p $CONJUR_ADMIN_PASSWORD
 

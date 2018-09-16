@@ -1,6 +1,6 @@
 ---
-- !policy
-  id: hello
+- !policy 
+  id: spring-apps/hello
   body:
   - &secrets
     - !variable pg/username

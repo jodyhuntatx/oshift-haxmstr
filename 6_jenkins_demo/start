@@ -1,10 +1,13 @@
 if [[ "$DOCKER_HOST" != "" ]]; then
-  echo "Run this demo from a non-OpenShift-initialized shell."
-  exit -1
+  # use localhost docker daemon for docker-compose support
+  unset DOCKER_TLS_VERIFY
+  unset DOCKER_HOST
+  unset DOCKER_CERT_PATH
 fi
 docker-compose up -d
 # copy Conjur network config info to demo bootstrap file
-cat ../_conjur-bootstrap.env > demo/bootstrap.env
+cp ../config/conjur.config demo/bootstrap.env
+cp ../config/_conjur-*.config demo/
 echo "export CONJUR_HOST=\$CONJUR_MASTER_HOST_NAME:\$CONJUR_MASTER_PORT" >> demo/bootstrap.env
 sleep 2
 echo "cd to /demo and run scripts in order"

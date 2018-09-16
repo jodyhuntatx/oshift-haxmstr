@@ -13,7 +13,8 @@ finish
 
 begin "Building demo application run-time environment image"
 {
-  docker-compose build hello
+  cp ../etc/conjur-$CONJUR_ACCOUNT.pem ./conjur-$CONJUR_ACCOUNT.pem
+  docker-compose build --build-arg CONJUR_ACCOUNT=$CONJUR_ACCOUNT hello
 } &> "${LOGBUFFER}"
 finish
 
