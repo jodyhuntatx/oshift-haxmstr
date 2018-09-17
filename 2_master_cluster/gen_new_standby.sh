@@ -15,19 +15,19 @@ main() {
   # make sure the cluster is healthy 
   wait_till_master_is_responsive 
 
-#  delete_failed_master $FAILED_MASTER
+  delete_failed_master $FAILED_MASTER
 
   # remove old entry in cluster config and add new one
   master_container_name=$(get_cluster_leader_name)
-#  docker exec $master_container_name evoke cluster member remove $FAILED_MASTER
-#  docker exec $master_container_name evoke cluster member add $NEW_STANDBY
+  docker exec $master_container_name evoke cluster member remove $FAILED_MASTER
+  docker exec $master_container_name evoke cluster member add $NEW_STANDBY
 
   echo
   echo "After removing failed master $FAILED_MASTER..."
   ./check_cluster.sh $master_container_name
 
   # conjur new standby
-#  new_standby_up $NEW_STANDBY
+  new_standby_up $NEW_STANDBY
 
   # Reenroll new standby in cluster
   docker exec -it $NEW_STANDBY evoke cluster enroll --reenroll -n $NEW_STANDBY conjur-cluster
