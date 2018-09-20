@@ -32,7 +32,7 @@ master_up() {
     --security-opt seccomp:unconfined \
     $CONJUR_APPLIANCE_IMAGE
 
-  docker network connect conjur-master-network $CONJUR_MASTER_CONTAINER_NAME
+  docker network connect --alias master --alias $CONJUR_MASTER_CONTAINER_NAME conjur-master-network $CONJUR_MASTER_CONTAINER_NAME
 
   docker exec -it $CONJUR_MASTER_CONTAINER_NAME \
     evoke configure master \
@@ -163,9 +163,9 @@ configure_cli() {
 
   wait_till_master_is_responsive
 	# initialize cli for connection to master
-  docker exec -it $CLI_CONTAINER_NAME bash -c "echo yes | conjur init -a $CONJUR_ACCOUNT -h $CONJUR_MASTER_HOST --force=true"
+  docker exec -it $CLI_CONTAINER_NAME bash -c "echo yes | conjur init -a $CONJUR_ACCOUNT -u https://$CONJUR_MASTER_HOST --force=true"
         # add policy plugin annotation in .conjurrc
-  docker exec $CLI_CONTAINER_NAME sed -i.bak -e "s#\[\]#\[ policy \]#g" /root/.conjurrc
+#  docker exec $CLI_CONTAINER_NAME sed -i.bak -e "s#\[\]#\[ policy \]#g" /root/.conjurrc
   docker exec $CLI_CONTAINER_NAME conjur authn login -u admin -p $CONJUR_ADMIN_PASSWORD
 
   echo "CLI container configured."
@@ -176,8 +176,8 @@ cluster_up() {
   announce "Initializing etcd cluster..."
 
   wait_till_master_is_responsive
-  docker cp ./cluster-policy.yml conjur-cli:/root/cluster-policy.yml
-  docker exec -it conjur-cli conjur policy load --as-group security_admin cluster-policy.yml
+  docker cp ./cluster-policy.yml conjur-cli:/cluster-policy.yml
+  docker exec -it conjur-cli conjur policy load --replace root cluster-policy.yml
   docker exec -it $CONJUR_MASTER_CONTAINER_NAME evoke cluster enroll -n $CONJUR_MASTER_CONTAINER_NAME conjur-cluster
 
  echo "Cluster initialized."

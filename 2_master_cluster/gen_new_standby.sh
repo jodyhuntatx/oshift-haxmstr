@@ -17,23 +17,34 @@ main() {
 
   delete_failed_master $FAILED_MASTER
 
-  # remove old entry in cluster config and add new one
   master_container_name=$(get_cluster_leader_name)
-  docker exec $master_container_name evoke cluster member remove $FAILED_MASTER
-  docker exec $master_container_name evoke cluster member add $NEW_STANDBY
+  update_master_alias $master_container_name
 
   echo
   echo "After removing failed master $FAILED_MASTER..."
+  set +e
   ./check_cluster.sh $master_container_name
+  set -e
+
+  update_cluster_config $master_container_name $FAILED_MASTER $NEW_STANDBY
+
+  echo
+  echo "After updating cluster config..."
+  set +e
+  ./check_cluster.sh $master_container_name
+  set -e
 
   # conjur new standby
   new_standby_up $NEW_STANDBY
 
   # Reenroll new standby in cluster
   docker exec -it $NEW_STANDBY evoke cluster enroll --reenroll -n $NEW_STANDBY conjur-cluster
+
   echo
   echo "After adding new standby $NEW_STANDBY..."
+  set +e
   ./check_cluster.sh $master_container_name
+  set -e
 }
 
 ############################
@@ -46,6 +57,37 @@ delete_failed_master() {
   docker stop $failed_master_name
   docker rm $failed_master_name
   set -e
+}
+
+############################
+update_master_alias() {
+  local master_name=$1; shift
+
+  # pause nodes
+  conjur_node_list=$(docker ps -f "label=role=conjur_node" --format "{{ .Names }}")
+  for i in $conjur_node_list; do
+    docker pause $i
+  done 
+
+  # disconnect master node from network, then reconnect w/ master alias
+  docker network disconnect conjur-master-network $master_name
+  docker network connect --alias master --alias $master_name conjur-master-network $master_name
+
+  # Resume the containers 
+  for i in $conjur_node_list; do
+    docker unpause $i
+  done
+}
+
+############################
+update_cluster_config() {
+  local master_name=$1; shift
+  local failed_master_name=$1; shift
+  local new_standby_name=$1; shift
+
+  # remove old entry in cluster config and add new one
+  docker exec $master_name evoke cluster member remove $failed_master_name
+  docker exec $master_name evoke cluster member add $new_standby_name
 }
 
 ############################

@@ -6,4 +6,5 @@ fi
 docker pause $1
 sleep $2
 docker unpause $1
+sleep 5
 ./check_cluster.sh $1
