@@ -1,0 +1,40 @@
+#!/bin/bash 
+if [[ "$DOCKER_HOST" != "" ]]; then
+  echo "Source unset_docker.env to use local docker daemon"
+  exit -1
+fi
+
+source lib/util
+
+./bin/build
+./stop
+
+begin "Starting app container..."
+{
+  docker-compose up -d \
+    conjur-cli \
+    demo-pg
+
+  docker-compose exec conjur-cli bash -c "echo yes | conjur init -h $CONJUR_MASTER_HOST_NAME:$CONJUR_MASTER_PORT --force=true"
+  docker-compose exec conjur-cli sed -i.bak -e "s#\[\]#\[ policy \]#g" /root/.conjurrc
+  docker-compose exec conjur-cli conjur authn login -u admin -p $CONJUR_ADMIN_PASSWORD
+} &> "${LOGBUFFER}"
+finish
+
+begin "Loading policy files"
+{
+  docker cp ./conjur/hello.yml spring-conjur-cli:/
+  docker exec -it spring-conjur-cli bash -c "
+    conjur policy load /hello.yml
+    conjur variable values add spring-apps/hello/pg/username postgres
+    conjur variable values add spring-apps/hello/pg/password postgres
+    conjur variable values add spring-apps/hello/secret $(openssl rand -hex 12)
+  "
+} &> "${LOGBUFFER}"
+finish
+
+begin "Starting the demo service"
+{
+  docker-compose up -d hello
+} &> "${LOGBUFFER}"
+finish

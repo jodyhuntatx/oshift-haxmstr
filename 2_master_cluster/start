@@ -5,5 +5,9 @@ set -eou pipefail
 ./stop
 ./1_create_openshift_project.sh
 ./2_build_and_push_containers.sh
-./3_deploy_master_cluster.sh
+if [[ $CONJUR_SIMPLE_CLUSTER == true ]]; then
+  ./3_deploy_simple_cluster.sh
+else
+  ./3_deploy_master_cluster.sh
+fi
 ./4_print_config.sh

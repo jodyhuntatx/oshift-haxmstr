@@ -43,13 +43,13 @@ master_up() {
     $CONJUR_ACCOUNT
 
   echo "Caching Certificate from Conjur in ../etc..."
-
+  mkdir -p ../etc
   rm -f ../etc/conjur-$CONJUR_ACCOUNT.pem
 					# cache cert for copying to other containers
   docker cp -L $CONJUR_MASTER_CONTAINER_NAME:/opt/conjur/etc/ssl/conjur.pem ../etc/conjur-$CONJUR_ACCOUNT.pem
 
-  echo "Caching Conjur Follower seed files in ~..."
-  docker exec $CONJUR_MASTER_CONTAINER_NAME evoke seed follower conjur-follower > ~/follower-seed.tar
+  echo "Caching Conjur Follower seed files in ../etc..."
+  docker exec $CONJUR_MASTER_CONTAINER_NAME evoke seed follower conjur-follower > ../etc/follower-seed.tar
 }
 
 ############################

@@ -1,0 +1,39 @@
+version: "2"
+
+networks:
+  demo:
+  bridge:
+
+services:
+  conjur-cli:
+    image: conjur-cli:conjur
+    container_name: spring-conjur-cli
+    entrypoint: [ "sleep", "infinity" ]
+    networks:
+      - demo
+
+  demo-pg:
+    image: postgres:9.3
+    ports: [ "35432:5432" ]
+    networks:
+      - demo
+
+  hello:
+    build: .
+    ports: [ "8080:8080" ]
+    container_name: hello
+    environment:
+      CONJUR_VERSION: "4"
+      CONJUR_APPLIANCE_URL: https://$CONJUR_MASTER_HOST_NAME:$CONJUR_MASTER_PORT/api
+      CONJUR_CERT_FILE: /etc/conjur-$CONJUR_ACCOUNT.pem
+      CONJUR_ACCOUNT: $CONJUR_ACCOUNT
+      CONJUR_AUTHN_LOGIN: admin
+      CONJUR_AUTHN_API_KEY: $CONJUR_ADMIN_PASSWORD
+    volumes:
+      - ./secrets.yml:/etc/secrets.yml
+      - ./target:/target
+    entrypoint: [ "sleep", "100000000" ]
+#    command: [ "java", "-jar", "/target/hello-0.1.0.jar" ]
+    networks:
+      - demo
+      - bridge

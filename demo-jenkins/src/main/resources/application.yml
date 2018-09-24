@@ -1,0 +1,26 @@
+spring:
+  datasource:
+    platform: postgres
+    url: jdbc:postgresql://demo-pg:5432/postgres
+    username: ${HELLO_PG_USERNAME}
+    password: ${HELLO_PG_PASSWORD}
+  jpa:
+    generate-ddl: true
+    hibernate:
+      ddl-auto: update
+
+app.message: ${APP_MESSAGE}
+app.username: ${APP_USERNAME}
+app.password: ${APP_PASSWORD}
+app.keystore:
+app.keystore_password: 
+
+
+spring.thymeleaf.cache: false
+spring.thymeleaf.enabled: true
+spring.thymeleaf.prefix: classpath:/templates/
+spring.thymeleaf.suffix: .html
+
+server.port: 7000
+
+build.number: 0

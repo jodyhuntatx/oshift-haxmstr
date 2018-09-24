@@ -64,7 +64,7 @@ get_seed_file_from_master() {
 
   echo "Retrieving follower seed file..."
   if [[ $NO_DNS = true ]]; then
-    cp ~/follower-seed.tar $temp_dir
+    cp ../etc/follower-seed.tar $temp_dir
   else
     scp -i $CONJUR_MASTER_SSH_KEY $CONJUR_MASTER_HOST_ADMIN@$CONJUR_MASTER_HOST_IP:~/follower-seed.tar $temp_dir
   fi

@@ -1,8 +1,2 @@
-jenkins-master.tar 	jenkis-master:demo
-weavescope.tar		weaveworks/scope:1.8.0
-haproxy-1.8.tar		haproxy:latest
-webapp.tar 		webapp:latest
-ubuntu.tar		ubuntu:16.04
-authenticator.tar	cyberark/conjur-kubernetes-authenticator:latest
 conjur-cli.tar		cyberark/conjur-cli:4-latest
 conjur-appliance.tar	conjur-appliance:4.9-stable    
