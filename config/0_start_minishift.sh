@@ -15,5 +15,5 @@ fi
 minishift start --memory $MINISHIFT_VM_MEMORY --vm-driver virtualbox --show-libmachine-logs --openshift-version $OPENSHIFT_VERSION
 echo ""
 echo "IMPORTANT!  IMPORTANT!  IMPORTANT!  IMPORTANT!"
-echo "You need to source config/minishift.config again to reference docker daemon in Minishift..."
+echo "You need to source config/conjur.config again to reference docker daemon in Minishift..."
 echo ""
