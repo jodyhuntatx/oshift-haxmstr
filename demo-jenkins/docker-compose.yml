@@ -6,7 +6,7 @@ networks:
 
 services:
   conjur-cli:
-    image: conjur-cli:conjur
+    image: cyberark/conjur-cli:4-latest
     container_name: spring-conjur-cli
     entrypoint: [ "sleep", "infinity" ]
     networks:

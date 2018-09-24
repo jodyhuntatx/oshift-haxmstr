@@ -12,6 +12,8 @@ spring:
 app.message: ${APP_MESSAGE}
 app.username: ${APP_USERNAME}
 app.password: ${APP_PASSWORD}
+app.keystore:
+app.keystore_password: 
 
 
 spring.thymeleaf.cache: false
