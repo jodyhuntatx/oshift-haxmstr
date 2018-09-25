@@ -3,6 +3,7 @@ set -eou pipefail
 
 oshift="${OSHIFT_CONJUR_ADMIN:-unset}"
 if [[ $oshift == unset ]]; then
+  echo "OpenShift Conjur project admin not set..."
   exit 0
 fi
 
@@ -26,3 +27,8 @@ set_project $CONJUR_PROJECT_NAME
 oc adm policy add-role-to-user admin $OSHIFT_CONJUR_ADMIN -n $CONJUR_PROJECT_NAME
 oc adm policy add-role-to-user system:registry $OSHIFT_CONJUR_ADMIN
 oc adm policy add-role-to-user system:image-builder $OSHIFT_CONJUR_ADMIN
+
+# Grant default service account permissions authn-k8s needs to:
+# 1) get + list pods (to verify pod names)
+# 2) create + get pods/exec (to inject cert into app sidecar)
+oc create -f ./manifests/conjur-authenticator-role.yaml

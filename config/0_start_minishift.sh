@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash 
 set -eou pipefail
 if [[ "$OPENSHIFT_VERSION" == "" ]]; then
 	echo "source config/minishift.config first before running this script."

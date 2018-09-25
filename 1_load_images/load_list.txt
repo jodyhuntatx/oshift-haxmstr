@@ -1,2 +1,0 @@
-conjur-cli.tar		cyberark/conjur-cli:4-latest
-conjur-appliance.tar	conjur-appliance:4.9-stable    

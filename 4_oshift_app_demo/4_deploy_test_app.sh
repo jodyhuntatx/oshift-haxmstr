@@ -37,6 +37,6 @@ oc create -f ./manifests/${TEST_APP_PROJECT_NAME}-deploy.yaml
 
 echo "Waiting for application pod to initialize..."
 
-sleep 5
+sleep 8
 
 echo "Test app deployed."

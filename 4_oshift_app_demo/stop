@@ -3,25 +3,22 @@ set -eou pipefail
 
 . ../utils.sh
 
-oc login -u $OSHIFT_CLUSTER_ADMIN
-oc project $TEST_APP_PROJECT_NAME
+announce "DESTROYING test apps."
 
-if has_project $TEST_APP_PROJECT_NAME; then
-  oc delete project $TEST_APP_PROJECT_NAME
+set_project $TEST_APP_PROJECT_NAME
 
-  printf "Waiting for $TEST_APP_PROJECT_NAME project deletion to complete"
+##############################
+# Destroy web app.
 
-  while : ; do
-    printf "..."
-    
-    if has_project "$TEST_APP_PROJECT_NAME"; then
-      sleep 5
-    else
-      break
-    fi
-  done
+oc delete -f manifests/${TEST_APP_PROJECT_NAME}-deploy.yaml --ignore-not-found=true
 
-  echo ""
-fi
+echo "Waiting for $TEST_APP_PROJECT_NAME pods to terminate..."
+while [[ "$(oc get pods 2>&1)" != "No resources found." ]]; do
+  echo -n '.'
+  sleep 3
+done
+echo
+
+echo "$TEST_APP_PROJECT_NAME app destroyed."
 
 echo "$TEST_APP_PROJECT_NAME environment purged."
