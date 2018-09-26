@@ -11,7 +11,7 @@ if [[ $NO_DNS == true ]]; then
   conjur_master=$(get_master_pod_name)
   docker exec -it $conjur_master conjur-plugin-service authn-k8s rake ca:initialize["conjur/authn-k8s/$AUTHENTICATOR_SERVICE_ID"]
 else
-  ssh -i ~/.aws/jody-k8s.pem $CONJUR_MASTER_HOST_ADMIN@$CONJUR_MASTER_HOST_NAME docker exec conjur1 conjur-plugin-service authn-k8s rake ca:initialize["conjur/authn-k8s/$AUTHENTICATOR_SERVICE_ID"] 
+  ssh -i $CONJUR_MASTER_SSH_KEY $CONJUR_MASTER_HOST_ADMIN@$CONJUR_MASTER_HOST_NAME docker exec conjur1 conjur-plugin-service authn-k8s rake ca:initialize["conjur/authn-k8s/$AUTHENTICATOR_SERVICE_ID"] 
 fi
 
 echo "Certificate authority initialized."
