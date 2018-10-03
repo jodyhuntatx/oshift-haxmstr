@@ -1,4 +1,3 @@
-etc/*
 1_prep_env/images/*.tar*
 7_spring_demo/.classpath
 7_spring_demo/.project
