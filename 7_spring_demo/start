@@ -1,4 +1,4 @@
-#!/bin/bash 
+#!/bin/bash -x
 if [[ "$DOCKER_HOST" != "" ]]; then
   echo "Source unset_docker.env to use local docker daemon"
   exit -1
@@ -15,7 +15,7 @@ begin "Starting app container..."
     conjur-cli \
     demo-pg
 
-  docker-compose exec conjur-cli bash -c "echo yes | conjur init -h $CONJUR_MASTER_HOST_NAME:$CONJUR_MASTER_PORT --force=true"
+  docker-compose exec conjur-cli bash -c "echo yes | conjur init -h \"$CONJUR_MASTER_HOST_NAME:$CONJUR_MASTER_PORT\" --force=true"
   docker-compose exec conjur-cli sed -i.bak -e "s#\[\]#\[ policy \]#g" /root/.conjurrc
   docker-compose exec conjur-cli conjur authn login -u admin -p $CONJUR_ADMIN_PASSWORD
 } &> "${LOGBUFFER}"

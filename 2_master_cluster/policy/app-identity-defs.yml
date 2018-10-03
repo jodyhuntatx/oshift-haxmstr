@@ -1,13 +1,12 @@
 ---
 - !policy
   id: test-app
-  owner: !group devops
   annotations:
     description: This policy defines the identity structure for the application
   body:
   - !layer
 
-  # add authn identity layer to application layer so authn roles inherit app's permissions
+  # add authn identity layer to application layer so authn role inherits app's permissions
   - !grant
     role: !layer 
     members:

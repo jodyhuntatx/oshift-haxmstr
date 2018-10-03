@@ -1,8 +1,8 @@
 ---
+# This policy defines the Projects that can authenticate to Conjur.
 # The project name can apply to more than one service (i.e. application layer) deployed in the same project.
 - !policy
-  id: conjur/authn-k8s/dev/apps
-  owner: !group operations
+  id: conjur/authn-k8s/{{ AUTHENTICATOR_SERVICE_ID }}/apps
   annotations:
     description: Identities permitted to authenticate 
   body:
@@ -11,7 +11,7 @@
       description: Layer of authenticator identities permitted to call authn svc
   - &hosts
     - !host
-      id: test-app/*/*
+      id: {{ TEST_APP_PROJECT_NAME }}/*/*
       annotations:
         kubernetes/authentication-container-name: authenticator
         openshift: "true"

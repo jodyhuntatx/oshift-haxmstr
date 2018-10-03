@@ -1,7 +1,6 @@
 ---
 - !policy
   id: secrets
-  owner: !group operations
   annotations:
     description: This policy grants secrets access to application layers
   body:
@@ -14,5 +13,3 @@
     - !layer /test-app
     resources:
     - !variable db-password
-#    - !variable /DemoVault/CICD/CICD_Secrets/Database-Oracle-OracleDBuser/username
-#    - !variable /DemoVault/CICD/CICD_Secrets/Database-Oracle-OracleDBuser/password
