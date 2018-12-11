@@ -4,12 +4,10 @@ set -eo pipefail
 . ../utils.sh
 
 main() {
-  scope launch
+#  scope launch
   master_up
   cli_up
   follower_up
-  announce "The Conjur Master endpoint is at: $CONJUR_MASTER_HOST_NAME:$CONJUR_MASTER_PORT"
-  announce "The Conjur Follower endpoint is at: $CONJUR_MASTER_HOST_NAME:$CONJUR_FOLLOWER_PORT"
   echo
 }
 
@@ -68,9 +66,7 @@ cli_up() {
 
   wait_till_master_is_responsive
 	# initialize cli for connection to master
-  docker exec -it $CLI_CONTAINER_NAME bash -c "echo yes | conjur init -a $CONJUR_ACCOUNT -h $CONJUR_MASTER_HOST --force=true"
-        # add policy plugin annotation in .conjurrc
-  docker exec $CLI_CONTAINER_NAME sed -i.bak -e "s#\[\]#\[ policy \]#g" /root/.conjurrc
+  docker exec -it $CLI_CONTAINER_NAME bash -c "echo yes | conjur init -a $CONJUR_ACCOUNT -u https://$CONJUR_MASTER_HOST --force=true"
   docker exec $CLI_CONTAINER_NAME conjur authn login -u admin -p $CONJUR_ADMIN_PASSWORD
 
   echo "CLI container configured."

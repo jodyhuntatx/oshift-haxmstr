@@ -8,9 +8,8 @@ APP_HOSTNAME=webapp/tomcat_host
 rm -f /root/.conjurrc /root/conjur*.pem
 
 # initialize client environment
-conjur init -h $CONJUR_MASTER_HOST_NAME:$CONJUR_MASTER_PORT << EOF
-yes
-EOF
+conjur init -h $CONJUR_MASTER_HOST_NAME:$CONJUR_MASTER_PORT  --force=yes
+
         # configure policy plugin
 sed -i.bak -e "s#\[\]#\[ policy \]#g" /root/.conjurrc
 sleep 2

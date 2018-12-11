@@ -5,4 +5,3 @@ set -eou pipefail
 ./stop
 ./1_build_and_push_containers.sh
 ./2_deploy_followers.sh
-./3_print_config.sh

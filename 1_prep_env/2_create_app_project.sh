@@ -1,5 +1,5 @@
 #!/bin/bash 
-set -eou pipefail
+set -ou pipefail
 
 oshift="${OSHIFT_CONJUR_ADMIN:-unset}"
 if [[ $oshift == unset ]]; then

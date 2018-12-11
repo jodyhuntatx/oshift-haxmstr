@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash 
 
 check_env_var() {
   var_name=$1

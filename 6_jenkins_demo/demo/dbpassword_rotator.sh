@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VAR_ID=secrets/db_password
+VAR_ID=secrets/prod_db_password
 
 while [[ 1 == 1 ]]; do
 	new_value=$(openssl rand -hex 12)

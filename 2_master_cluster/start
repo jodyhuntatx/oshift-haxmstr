@@ -1,5 +1,5 @@
 #!/bin/bash 
-set -eou pipefail
+set -ou pipefail
 
 ./0_check_dependencies.sh
 ./1_build_and_push_containers.sh

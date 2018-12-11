@@ -1,7 +1,6 @@
 ---
 - !policy
   id: webapp
-  owner: !group developers
   body:
   - !layer
 

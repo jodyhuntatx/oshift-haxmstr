@@ -1,28 +1,32 @@
 ---
 apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: oc-test-app-summon-sidecar
+---
+apiVersion: v1
 kind: DeploymentConfig
 metadata:
   labels:
-    app: {{ TEST_APP_PROJECT_NAME }}
-  name: {{ TEST_APP_PROJECT_NAME }}
+    app: test-app
+  name: test-app
 spec:
   replicas: 1
   selector:
-    app: {{ TEST_APP_PROJECT_NAME }}
+    app: test-app
   template:
     metadata:
       labels:
-        app: {{ TEST_APP_PROJECT_NAME }}
+        app: test-app
     spec:
+      serviceAccountName: oc-test-app-summon-sidecar
       containers:
       - image: {{ TEST_APP_DOCKER_IMAGE }}
         imagePullPolicy: Always
-        name: {{ TEST_APP_PROJECT_NAME }}-app
+        name: test-app
         env:
           - name: CONJUR_APPLIANCE_URL
-            value: https://conjur-follower.{{ CONJUR_PROJECT_NAME }}.svc.cluster.local/api
-          - name: CONJUR_VERSION
-            value: '{{ CONJUR_VERSION }}'
+            value: "{{ CONJUR_APPLIANCE_URL }}"
           - name: CONJUR_ACCOUNT
             value: {{ CONJUR_ACCOUNT }}
           - name: CONJUR_SSL_CERTIFICATE
@@ -32,11 +36,13 @@ spec:
                 key: ssl-certificate
           - name: CONJUR_AUTHN_TOKEN_FILE
             value: /run/conjur/access-token
+          - name: CONJUR_VERSION
+            value: "{{ CONJUR_VERSION }}"
         volumeMounts:
           - mountPath: /run/conjur
             name: conjur-access-token
             readOnly: true
-      - image: {{ AUTHN_DOCKER_IMAGE }}
+      - image: cyberark/conjur-kubernetes-authenticator
         imagePullPolicy: Always
         name: authenticator
         env:
@@ -55,13 +61,13 @@ spec:
           - name: CONJUR_VERSION
             value: '{{ CONJUR_VERSION }}'
           - name: CONJUR_APPLIANCE_URL
-            value: https://conjur-follower.{{ CONJUR_PROJECT_NAME }}.svc.cluster.local/api
+            value: "{{ CONJUR_APPLIANCE_URL }}"
           - name: CONJUR_AUTHN_URL
-            value: https://conjur-follower.{{ CONJUR_PROJECT_NAME }}.svc.cluster.local/api/authn-k8s/{{ SERVICE_ID }}
+            value: "{{ CONJUR_AUTHN_URL }}"
           - name: CONJUR_ACCOUNT
             value: {{ CONJUR_ACCOUNT }}
           - name: CONJUR_AUTHN_LOGIN
-            value: {{ TEST_APP_PROJECT_NAME }}/*/*
+            value: "{{ CONJUR_AUTHN_LOGIN_PREFIX }}/oc-test-app-summon-sidecar"
           - name: CONJUR_SSL_CERTIFICATE
             valueFrom:
               configMapKeyRef:
@@ -70,6 +76,8 @@ spec:
         volumeMounts:
           - mountPath: /run/conjur
             name: conjur-access-token
+      imagePullSecrets:
+        - name: dockerpullsecret
       volumes:
         - name: conjur-access-token
           emptyDir:

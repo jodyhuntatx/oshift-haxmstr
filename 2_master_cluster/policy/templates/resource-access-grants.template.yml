@@ -5,6 +5,7 @@
     description: This policy grants secrets access to application layers
   body:
 
+  - !variable db-username
   - !variable db-password
 
   - !permit
@@ -12,4 +13,5 @@
     roles:
     - !layer /{{ TEST_APP_PROJECT_NAME }}
     resources:
+    - !variable db-username
     - !variable db-password

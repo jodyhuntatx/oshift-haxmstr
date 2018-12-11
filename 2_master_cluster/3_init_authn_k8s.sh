@@ -39,7 +39,7 @@ policy/resource-access-grants.yml
 "
 for i in $POLICY_FILE_LIST; do
         echo "Loading policy file: $i"
-        docker exec conjur-cli conjur policy load --as-group security_admin "/$i"
+        docker exec conjur-cli conjur policy load root "/$i"
 done
 
 # create initial value for db-password variable
@@ -47,9 +47,9 @@ docker exec conjur-cli conjur variable values add secrets/db-password $(openssl 
 
 if [[ $NO_DNS == true ]]; then
   conjur_master=$(get_master_pod_name)
-  docker exec -it $conjur_master conjur-plugin-service authn-k8s rake ca:initialize["conjur/authn-k8s/$AUTHENTICATOR_SERVICE_ID"]
+  docker exec -it $conjur_master chpst -u conjur conjur-plugin-service possum rake authn_k8s:ca_init["conjur/authn-k8s/$AUTHENTICATOR_SERVICE_ID"]
 else
-  ssh -i $CONJUR_MASTER_SSH_KEY $CONJUR_MASTER_HOST_ADMIN@$CONJUR_MASTER_HOST_NAME docker exec conjur1 conjur-plugin-service authn-k8s rake ca:initialize["conjur/authn-k8s/$AUTHENTICATOR_SERVICE_ID"] 
+  ssh -i $CONJUR_MASTER_SSH_KEY $CONJUR_MASTER_HOST_ADMIN@$CONJUR_MASTER_HOST_NAME docker exec -it $conjur_master chpst -u conjur conjur-plugin-service possum rake authn_k8s:ca_init["conjur/authn-k8s/$AUTHENTICATOR_SERVICE_ID"]
 fi
 
 echo "Certificate authority initialized."
