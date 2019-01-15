@@ -3,6 +3,8 @@ set -eo pipefail
 
 . ../utils.sh
 
+HAPROXY_CONTAINER_NAME=conjur-haproxy
+
 main() {
   scope launch
   master_network_up
@@ -18,7 +20,7 @@ main() {
 
 ############################
 master_network_up() {
-  docker network create conjur-master-network
+  docker network create $CONJUR_NETWORK
 }
 
 ############################
@@ -32,7 +34,7 @@ master_up() {
     --security-opt seccomp:unconfined \
     $CONJUR_APPLIANCE_IMAGE
 
-  docker network connect conjur-master-network $CONJUR_MASTER_CONTAINER_NAME
+  docker network connect $CONJUR_NETWORK $CONJUR_MASTER_CONTAINER_NAME
 
   docker exec -it $CONJUR_MASTER_CONTAINER_NAME \
     evoke configure master \
@@ -97,7 +99,7 @@ start_standby() {
     --security-opt seccomp:unconfined \
     $CONJUR_APPLIANCE_IMAGE
 
-  docker network connect conjur-master-network $standby_name
+  docker network connect $CONJUR_NETWORK $standby_name
 }
 
 ############################
@@ -119,16 +121,19 @@ configure_standby() {
 ############################
 haproxy_up() {
   docker run -d \
-    --name conjur-master \
+    --name $HAPROXY_CONTAINER_NAME \
     --label role=haproxy \
     -p "$CONJUR_MASTER_PORT:443" \
     -p "$CONJUR_MASTER_PGSYNC_PORT:5432" \
-    -p "$CONJUR_MASTER_PGAUDIT_PORT:5433" \
+    -p "$CONJUR_MASTER_PGAUDIT_PORT:1999" \
+    --privileged \
     --restart always \
     --entrypoint "/start.sh" \
     haproxy:latest
 
-  docker network connect conjur-master-network conjur-master
+  docker network connect $CONJUR_NETWORK $HAPROXY_CONTAINER_NAME
+
+  docker restart $HAPROXY_CONTAINER_NAME
 }
 
 ############################
@@ -162,11 +167,11 @@ configure_cli() {
   fi
 
   wait_till_master_is_responsive
-	# initialize cli for connection to master
-  docker exec -it $CLI_CONTAINER_NAME bash -c "echo yes | conjur init -a $CONJUR_ACCOUNT -h $CONJUR_MASTER_HOST --force=true"
-        # add policy plugin annotation in .conjurrc
-  docker exec $CLI_CONTAINER_NAME sed -i.bak -e "s#\[\]#\[ policy \]#g" /root/.conjurrc
+	# initialize cli connection to master & login as admin
+  docker exec -it $CLI_CONTAINER_NAME bash -c "echo yes | conjur init -a $CONJUR_ACCOUNT -u https://$CONJUR_MASTER_HOST --force=true"
+
   docker exec $CLI_CONTAINER_NAME conjur authn login -u admin -p $CONJUR_ADMIN_PASSWORD
+  docker exec $CLI_CONTAINER_NAME mkdir /policy
 
   echo "CLI container configured."
 }
@@ -176,8 +181,8 @@ cluster_up() {
   announce "Initializing etcd cluster..."
 
   wait_till_master_is_responsive
-  docker cp ./cluster-policy.yml conjur-cli:/root/cluster-policy.yml
-  docker exec -it conjur-cli conjur policy load --as-group security_admin cluster-policy.yml
+  docker cp ./cluster-policy.yml conjur-cli:/cluster-policy.yml
+  docker exec -it conjur-cli conjur policy load root cluster-policy.yml
   docker exec -it $CONJUR_MASTER_CONTAINER_NAME evoke cluster enroll -n $CONJUR_MASTER_CONTAINER_NAME conjur-cluster
 
  echo "Cluster initialized."

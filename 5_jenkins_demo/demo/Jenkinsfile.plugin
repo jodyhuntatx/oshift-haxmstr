@@ -1,0 +1,15 @@
+node {
+   stage('Work') {
+       withCredentials([conjurSecretCredential(credentialsId: 'prod-db-username', variable: 'DB_UNAME')]) {
+           withCredentials([conjurSecretCredential(credentialsId: 'prod-db-password', variable: 'DB_PWD')]) {
+		sh "date > /demo/demo.out"
+		sh "echo DB_UNAME=$DB_UNAME >> /demo/demo.out"
+		sh "echo DB_PWD=$DB_PWD >> /demo/demo.out"
+	   }
+       }
+   }
+
+   stage('Results') {
+       echo "Finished!"
+   }
+}

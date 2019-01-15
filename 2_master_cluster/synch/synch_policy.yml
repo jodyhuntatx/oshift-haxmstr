@@ -1,0 +1,13 @@
+---
+- !host
+  id: Sync_WIN-T4KRGHVATN4
+
+- !policy
+   id: DemoVault
+   body:
+   - !group DemoVault-admins
+
+- !grant
+  role: !group DemoVault/DemoVault-admins
+  members:
+  - !host /Sync_WIN-T4KRGHVATN4

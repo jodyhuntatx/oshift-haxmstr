@@ -1,38 +1,43 @@
 #!/bin/bash
 set -eo pipefail
 
-. ../utils.sh
+. utils.sh
 
-check_env_var "OSHIFT_CLUSTER_ADMIN"
-check_env_var "OSHIFT_CONJUR_ADMIN"
-check_env_var "CONJUR_PROJECT_NAME"
 check_env_var "CONJUR_APPLIANCE_IMAGE"
-check_env_var "CONJUR_MASTER_HOST_NAME"
-check_env_var "CONJUR_MASTER_HOST_IP"
-check_env_var "CONJUR_MASTER_HOST"
-check_env_var "CONJUR_MASTER_PORT"
-check_env_var "CLI_CONTAINER_NAME"
-check_env_var "CLI_IMAGE_NAME"
-check_env_var "DOCKER_REGISTRY_PATH"
-check_env_var "CONJUR_ACCOUNT"
-check_env_var "CONJUR_ADMIN_PASSWORD"
-check_env_var "AUTHENTICATOR_SERVICE_ID"
-if [[ "$NO_DNS" == "false" ]]; then
-  check_env_var "CONJUR_MASTER_SSH_KEY"
+check_env_var "CONJUR_NAMESPACE_NAME"
+check_env_var "AUTHENTICATOR_ID"
+
+if [ ! is_minienv ]; then
+  check_env_var "DOCKER_REGISTRY_PATH"
 fi
 
-# Confirms Conjur image is present.
-if [[ "$(docker images -q $CONJUR_APPLIANCE_IMAGE 2> /dev/null)" == "" ]]; then
-  echo "You must have the Conjur v4 Appliance tagged as $CONJUR_APPLIANCE_IMAGE in your Docker engine to run this script."
+if [ "${PLATFORM}" = "kubernetes" ] && [ ! is_minienv ]; then
+  check_env_var "DOCKER_REGISTRY_URL"
+fi
+
+if [ "${PLATFORM}" = "openshift" ]; then
+  check_env_var "OSHIFT_CONJUR_ADMIN_USERNAME"
+fi
+
+# check if CONJUR_VERSION is consistent with CONJUR_APPLIANCE_IMAGE
+appliance_tag=${CONJUR_APPLIANCE_IMAGE//[A-Za-z.]*:/}
+appliance_version=${appliance_tag//[.-][0-9A-Za-z.-]*/}
+if [ "${appliance_version}" != "$CONJUR_VERSION" ]; then
+  echo "ERROR! Your appliance does not match the specified Conjur version."
   exit 1
 fi
 
-oc login -u $OSHIFT_CLUSTER_ADMIN
-set_project default
-
-# Confirm logged into OpenShift.
-if ! oc whoami 2 > /dev/null; then
-  echo "You must login to OpenShift before running this demo."
-  exit 1
+if [[ "${DEPLOY_MASTER_CLUSTER}" = "true" ]]; then
+  check_env_var "CONJUR_VERSION"
+  check_env_var "CONJUR_ACCOUNT"
+  check_env_var "CONJUR_ADMIN_PASSWORD"
 fi
 
+if [[ "${DEPLOY_MASTER_CLUSTER}" = "false" ]]; then
+  check_env_var "FOLLOWER_SEED_PATH"
+
+  if [[ ! -f "${FOLLOWER_SEED_PATH}" ]]; then
+    echo "ERROR! Follower seed path '${FOLLOWER_SEED_PATH}' does not point to a file!"
+    exit 1
+  fi
+fi

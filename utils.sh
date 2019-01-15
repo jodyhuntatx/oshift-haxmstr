@@ -88,7 +88,7 @@ get_cluster_leader_name() {
 mastercmd() {
   local current_project=$(oc projects | grep \* | awk '{ print $2 }')
 
-  set_project $CONJUR_PROJECT_NAME
+  set_project $CONJUR_NAMESPACE_NAME
 
   local master_pod=$(oc get pod -l role=master --no-headers | awk '{ print $1 }')
   local interactive=$1
@@ -146,7 +146,7 @@ function wait_for_it() {
 }
 
 rotate_api_key() {
-  set_project $CONJUR_PROJECT_NAME
+  set_project $CONJUR_NAMESPACE_NAME
 
   master_pod_name=$(get_master_pod_name)
     

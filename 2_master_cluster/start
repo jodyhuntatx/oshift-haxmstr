@@ -8,5 +8,4 @@ if [[ $CONJUR_SIMPLE_CLUSTER == true ]]; then
 else
   ./2_deploy_master_cluster.sh
 fi
-./3_init_authn_k8s.sh
-./4_print_config.sh
+./3_print_config.sh

@@ -1,0 +1,43 @@
+#!/bin/bash
+
+export CONJUR_AUTHN_LOGIN=host/spring_demo
+export CONJUR_AUTHN_API_KEY=temp
+
+source lib/util
+
+#./bin/build
+./stop
+
+begin "Starting app container..."
+{
+  docker-compose up -d demo-pg
+
+  docker exec conjur-cli bash -c "echo yes | conjur init -u \"https://$CONJUR_MASTER_HOST_NAME:$CONJUR_MASTER_PORT\" -a $CONJUR_ACCOUNT --force=true"
+  docker exec conjur-cli conjur authn login -u admin -p $CONJUR_ADMIN_PASSWORD
+}
+#} &> "${LOGBUFFER}"
+finish
+
+begin "Loading policy files"
+{
+  set -x
+  docker cp ./conjur/hello.yml conjur-cli:/policy
+  docker exec -it conjur-cli bash -c "
+    conjur policy load root /policy/hello.yml
+    conjur variable values add spring-apps/hello/pg/username postgres
+    conjur variable values add spring-apps/hello/pg/password postgres
+    conjur variable values add spring-apps/hello/secret $(openssl rand -hex 12)
+  "
+}
+#} &> "${LOGBUFFER}"
+finish
+
+begin "Starting the demo service"
+{
+  CONJUR_AUTHN_API_KEY=$(docker exec -it conjur-cli conjur host rotate_api_key -h spring_demo)
+  docker-compose up -d hello
+  docker-compose exec hello sh -c "echo \"$CONJUR_MASTER_HOST_IP     $CONJUR_MASTER_HOST_NAME\" >> /etc/hosts"
+  docker cp ../etc/conjur-$CONJUR_ACCOUNT.pem hello:/etc/conjur-$CONJUR_ACCOUNT.pem
+}
+#} &> "${LOGBUFFER}"
+finish

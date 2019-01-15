@@ -1,0 +1,17 @@
+---
+- !policy
+  id: secrets
+  annotations:
+    description: This policy grants secrets access to application layers
+  body:
+
+  - !variable db-username
+  - !variable db-password
+
+  - !permit
+    privileges: [ read, execute ]
+    roles:
+    - !layer /cme-dev
+    resources:
+    - !variable db-username
+    - !variable db-password

@@ -1,5 +1,0 @@
-unset DOCKER_TLS_VERIFY
-unset DOCKER_HOST
-unset DOCKER_CERT_PATH
-docker-compose down
-rm demo/_conjur* demo/bootstrap.env demo/auth.env demo/jobs_hf_token.txt

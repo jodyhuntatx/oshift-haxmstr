@@ -1,10 +1,10 @@
 #!/bin/bash 
-set -eo pipefail
+set -o pipefail
 
 . ../utils.sh
 
 main() {
-#  scope launch
+  scope launch
   master_up
   cli_up
   follower_up
@@ -20,7 +20,7 @@ master_up() {
     --label role=conjur_node \
     -p "$CONJUR_MASTER_PORT:443" \
     -p "$CONJUR_MASTER_PGSYNC_PORT:5432" \
-    -p "$CONJUR_MASTER_PGAUDIT_PORT:5433" \
+    -p "$CONJUR_MASTER_PGAUDIT_PORT:1999" \
     --restart always \
     --security-opt seccomp:unconfined \
     $CONJUR_APPLIANCE_IMAGE

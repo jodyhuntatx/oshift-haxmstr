@@ -1,9 +1,12 @@
 FROM haproxy:1.8
 
-RUN apt-get clean \
-    && apt-get update \
-    && apt-get install -y curl vim \
-    && rm -rf /var/lib/apt/lists/*
+ENV DEBIAN_FRONTEND noninteractive
 
-COPY haproxy.cfg.master-only /usr/local/etc/haproxy/haproxy.cfg
-COPY start.sh /
+RUN apt-get update -y && \
+    apt-get install -y curl jq vim procps socat && \
+    rm -rf /var/lib/apt/lists/*
+
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+
+COPY conjur-health-check.sh /root/
+COPY haproxy.cfg /usr/local/etc/haproxy/

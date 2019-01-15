@@ -1,0 +1,13 @@
+app.message: Hello from YAML
+app.username: Username from YAML
+app.password: Password from YAML
+
+
+spring.thymeleaf.cache: false
+spring.thymeleaf.enabled: true
+spring.thymeleaf.prefix: classpath:/templates/
+spring.thymeleaf.suffix: .html
+
+server.port: 7000
+
+build.number: 0

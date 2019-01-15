@@ -1,7 +1,5 @@
 #!/bin/bash 
 
-oc project $CONJUR_PROJECT_NAME
-
 printf "\n\nLoad balancer config:\n----------------\n"
 docker exec -it conjur-master cat /usr/local/etc/haproxy/haproxy.cfg
 

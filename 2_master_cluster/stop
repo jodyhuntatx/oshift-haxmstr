@@ -19,9 +19,9 @@ if [[ "$(docker ps -a | grep conjur-cli)" != "" ]]; then
   docker rm conjur-cli
 fi
 
-if [[ "$(docker network list | grep conjur-master-network)" != "" ]]; then
+if [[ "$(docker network list | grep $CONJUR_NETWORK)" != "" ]]; then
   sleep 2
-  docker network rm conjur-master-network
+  docker network rm $CONJUR_NETWORK
 fi
 
 scope stop

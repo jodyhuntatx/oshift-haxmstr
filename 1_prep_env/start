@@ -1,4 +1,2 @@
 #!/bin/bash
 ./0_load_images.sh
-./1_create_conjur_project.sh
-./2_create_app_project.sh

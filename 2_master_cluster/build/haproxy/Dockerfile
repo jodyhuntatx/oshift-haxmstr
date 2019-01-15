@@ -1,4 +1,4 @@
-FROM haproxy:1.8
+FROM haproxy:latest
 
 RUN apt-get clean \
     && apt-get update \

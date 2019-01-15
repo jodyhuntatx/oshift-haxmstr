@@ -6,13 +6,13 @@ set -eou pipefail
 oshift="${OSHIFT_CONJUR_ADMIN:-unset}"
 if [[ $oshift != unset ]]; then
   oc login -u $OSHIFT_CONJUR_ADMIN
-  set_project $CONJUR_PROJECT_NAME
+  set_project $CONJUR_NAMESPACE_NAME
   echo $(oc whoami -t) | docker login -u _ --password-stdin $DOCKER_REGISTRY_PATH
 fi
 
 main() {
   push_conjur_appliance
-  push_haproxy
+#  push_haproxy
   push_cli
   echo "Docker images pushed."
 }
@@ -26,11 +26,11 @@ push_conjur_appliance() {
       ./build.sh
     popd
   else
-    docker tag $CONJUR_APPLIANCE_IMAGE conjur-appliance:$CONJUR_PROJECT_NAME
+    docker tag $CONJUR_APPLIANCE_IMAGE conjur-appliance:$CONJUR_NAMESPACE_NAME
   fi
 
   if [[ $oshift != unset ]]; then
-    docker_tag_and_push $CONJUR_PROJECT_NAME "conjur-appliance"
+    docker_tag_and_push $CONJUR_NAMESPACE_NAME "conjur-appliance"
   fi
 }
 
@@ -52,10 +52,10 @@ push_cli() {
   if [[ $CONNECTED == true ]]; then
     docker pull cyberark/conjur-cli:$CONJUR_VERSION-latest
   fi
-  docker tag cyberark/conjur-cli:$CONJUR_VERSION-latest conjur-cli:$CONJUR_PROJECT_NAME
+  docker tag cyberark/conjur-cli:$CONJUR_VERSION-latest conjur-cli:$CONJUR_NAMESPACE_NAME
 
   if [[ $oshift != unset ]]; then
-    docker_tag_and_push $CONJUR_PROJECT_NAME "conjur-cli"
+    docker_tag_and_push $CONJUR_NAMESPACE_NAME "conjur-cli"
   fi
 }
 

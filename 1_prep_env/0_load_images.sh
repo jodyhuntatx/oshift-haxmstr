@@ -1,6 +1,6 @@
 #!/bin/bash 
 
-. ./manifests/image_list.env
+. ./image_list.env
 
 num_rows=8
 for ((i=1;i<num_rows;i++)) do

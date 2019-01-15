@@ -1,0 +1,2 @@
+CREATE USER test_app PASSWORD 'f2814f396d393525d0cae8f8';
+GRANT ALL ON SCHEMA public to test_app;

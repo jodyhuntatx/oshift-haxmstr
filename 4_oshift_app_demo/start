@@ -1,8 +1,14 @@
 #!/bin/bash
-set -eo pipefail
-oc login -u $OSHIFT_CONJUR_ADMIN
+set -euo pipefail
+
 ./0_check_dependencies.sh
-./1_init_app_cert.sh
-./2_build_and_push_images.sh
-./3_deploy_test_app.sh
-./4_retrieve_secret.sh
+
+./stop
+
+./1_create_test_app_namespace.sh
+./2_store_conjur_cert.sh
+./3_build_and_push_containers.sh
+./4_load_policies.sh
+./5_init_authn_k8s.sh
+./6_deploy_test_app.sh
+./7_verify_authentication.sh
